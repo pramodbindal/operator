@@ -48,10 +48,10 @@ jobs:
         fi
 
         git commit -F- <<EOF
-          [bot:next] Update  generate Cluster Service Version (CSV)
+          [bot:${BASE_BRANCH}] Update  generate Cluster Service Version (CSV)
         EOF
         
-        git push -f ${SOURCE_BRANCH}
+        git push -f origin ${SOURCE_BRANCH}
 
         if [ "$(gh pr list --base ${BASE_BRANCH} --head ${SOURCE_BRANCH} --json url --jq 'length')" = "0" ]; then
           echo "creating PR..."
