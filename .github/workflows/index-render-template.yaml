@@ -73,7 +73,7 @@ jobs:
       - name: Apply downloaded changes
         run: |
           set -x
-          cp -rvf  downloaded-artifacts/ .konflux/olm-catalog/index/
+          cp -rvf  downloaded-artifacts/* .konflux/olm-catalog/index/
       - name: Commit Changes and Generate PR
         run: |
           git config user.name openshift-pipelines-bot
