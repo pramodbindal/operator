@@ -58,7 +58,7 @@ jobs:
       - name: Save generated changes
         uses: actions/upload-artifact@v4
         with:
-          name: catalog-${{ matrix.version }}
+          name: ${{ matrix.version }}
           path: .konflux/olm-catalog/index/${{ matrix.version }}
 
   final-commit:
@@ -73,12 +73,7 @@ jobs:
       - name: Apply downloaded changes
         run: |
           set -x
-          ls -al  downloaded-artifacts/
-          for dir in downloaded-artifacts/catalog-*; do
-            version=$(basename "$dir" | sed 's/catalog-//')
-            mkdir -p .konflux/olm-catalog/index/$version
-            cp -r "$dir"/* .konflux/olm-catalog/index/$version/
-          done
+          cp -rvf  downloaded-artifacts/ .konflux/olm-catalog/index/
       - name: Commit Changes and Generate PR
         run: |
           git config user.name openshift-pipelines-bot
