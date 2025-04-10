@@ -73,6 +73,7 @@ jobs:
       - name: Apply downloaded changes
         run: |
           set -x
+          ls -al  downloaded-artifacts/
           for dir in downloaded-artifacts/catalog-*; do
             version=$(basename "$dir" | sed 's/catalog-//')
             mkdir -p .konflux/olm-catalog/index/$version
