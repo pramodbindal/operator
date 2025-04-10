@@ -56,15 +56,10 @@ jobs:
           chmod +x /usr/local/bin/opm
           ./hack/index-render-template.sh ${{matrix.version}} ${{github.event.inputs.environment}}
       - name: Save generated changes
-        run: |
-          # Changes will be committed later
-          mkdir -p output/${{ matrix.version }}
-          cp -r .konflux/olm-catalog/index/${{ matrix.version }}/* output/${{ matrix.version }}/
-      - name: Upload generated files
         uses: actions/upload-artifact@v4
         with:
           name: catalog-${{ matrix.version }}
-          path: output/${{ matrix.version }}
+          path: .konflux/olm-catalog/index/${{ matrix.version }}
 
   final-commit:
     needs: generate-catalog
@@ -77,6 +72,7 @@ jobs:
           path: downloaded-artifacts
       - name: Apply downloaded changes
         run: |
+          set -x
           for dir in downloaded-artifacts/catalog-*; do
             version=$(basename "$dir" | sed 's/catalog-//')
             mkdir -p .konflux/olm-catalog/index/$version
