@@ -55,7 +55,10 @@ jobs:
           curl -sSfLo /usr/local/bin/opm "https://github.com/operator-framework/operator-registry/releases/download/v1.47.0/linux-amd64-opm"
           chmod +x /usr/local/bin/opm
           ./hack/index-render-template.sh ${{matrix.version}} ${{github.event.inputs.environment}}
-
+  final-commit:
+    needs: generate-catalog
+    runs-on: ubuntu-latest
+    steps:
       - name: Commit new changes
         run: |
           BASE_BRANCH=${GITHUB_REF#refs/heads/}
@@ -64,7 +67,7 @@ jobs:
           git config user.email pipelines-extcomm@redhat.com
           git checkout -b ${SOURCE_BRANCH}
           
-          git add .konflux/olm-catalog/index/${{matrix.version}}/
+          git add .konflux/olm-catalog/index/
           
           if [[ -z $(git status --porcelain --untracked-files=no) ]]; then
             echo "No change, exiting"
