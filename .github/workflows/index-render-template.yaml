@@ -55,26 +55,37 @@ jobs:
           curl -sSfLo /usr/local/bin/opm "https://github.com/operator-framework/operator-registry/releases/download/v1.47.0/linux-amd64-opm"
           chmod +x /usr/local/bin/opm
           ./hack/index-render-template.sh ${{matrix.version}} ${{github.event.inputs.environment}}
-
       - name: Save generated changes
         run: |
           # Changes will be committed later
-          git add .konflux/olm-catalog/index/
-          git stash
+          mkdir -p output/${{ matrix.version }}
+          cp -r .konflux/olm-catalog/index/${{ matrix.version }}/* output/${{ matrix.version }}/
+      - name: Upload generated files
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalog-${{ matrix.version }}
+          path: output/${{ matrix.version }}
 
   final-commit:
     needs: generate-catalog
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Pull stashed changes
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: downloaded-artifacts
+      - name: Apply downloaded changes
+        run: |
+          for dir in downloaded-artifacts/catalog-*; do
+            version=$(basename "$dir" | sed 's/catalog-//')
+            mkdir -p .konflux/olm-catalog/index/$version
+            cp -r "$dir"/* .konflux/olm-catalog/index/$version/
+          done
+      - name: Commit Changes and Generate PR
         run: |
           git config user.name openshift-pipelines-bot
           git config user.email pipelines-extcomm@redhat.com
-          git stash pop || echo "Nothing to stash"
-      - name: Commit new changes
-        run: |
           BASE_BRANCH=${GITHUB_REF#refs/heads/}
           SOURCE_BRANCH=actions/update/operator-update-images-${BASE_BRANCH}
           git checkout -b ${SOURCE_BRANCH}
@@ -87,7 +98,7 @@ jobs:
           fi
           
           git commit -F- <<EOF
-          [bot:${BASE_BRANCH}] Update ${{matrix.version}} generate catalog
+          [bot:${BASE_BRANCH}] Update  catalog
           EOF
           
           git push -f origin ${SOURCE_BRANCH}
